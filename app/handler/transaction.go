@@ -36,6 +36,30 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	respondSuccess(w, transaction)
 }
 
+func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	tranId, err := strconv.ParseInt(vars["tran_id"], 10, 64)
+	transaction := model.Transaction{}
+	transaction.ID = uint(tranId)
+	db.Find(&transaction)
+
+	if err := db.Error; err != nil {
+		respondError(w, http.StatusInternalServerError, "failed while transaction information")
+	}
+	wallet := getWalletFor(db, transaction.WalletId)
+
+	if err := db.Error; err != nil {
+		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
+	}
+	transaction = revertTransactionType(transaction)
+	err = processTransaction(wallet, transaction, db)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
+		return
+	}
+	respondSuccess(w, transaction)
+}
+
 func processTransaction(wallet model.Wallet, transaction model.Transaction, db *gorm.DB) error {
 	if !canProcessTransaction(transaction, wallet) {
 		return fmt.Errorf("cannot process transaction")
@@ -87,29 +111,6 @@ func getWalletFor(db *gorm.DB, walletId uint) model.Wallet {
 	return wallet
 }
 
-func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	tranId, err := strconv.ParseInt(vars["tran_id"], 10, 64)
-	transaction := model.Transaction{}
-	transaction.ID = uint(tranId)
-	db.Find(&transaction)
-
-	if err := db.Error; err != nil {
-		respondError(w, http.StatusInternalServerError, "failed while transaction information")
-	}
-	wallet := getWalletFor(db, transaction.WalletId)
-
-	if err := db.Error; err != nil {
-		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
-	}
-	transaction = revertTransactionType(transaction)
-	err = processTransaction(wallet, transaction, db)
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
-		return
-	}
-	respondSuccess(w, transaction)
-}
 func revertTransactionType(transaction model.Transaction) model.Transaction {
 	if transaction.Type == constant.CREDIT {
 		transaction.Type = constant.DEBIT
