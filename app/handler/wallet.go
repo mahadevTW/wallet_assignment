@@ -8,6 +8,12 @@ import (
 	"wallet/app/model"
 )
 
+func CreateWallet(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	wallet := model.Wallet{}
+	db.Create(&wallet)
+	respondSuccess(w, wallet)
+}
+
 func GetWallet(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	walletId, err := strconv.ParseInt(vars["wallet_id"], 10, 64)

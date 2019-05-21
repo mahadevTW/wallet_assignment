@@ -7,8 +7,7 @@ import (
 
 type Wallet struct {
 	gorm.Model
-	Balance      float32
-	Transactions []Transaction `gorm:"foreignkey:WalletId"`
+	Balance float32
 }
 type Transaction struct {
 	gorm.Model

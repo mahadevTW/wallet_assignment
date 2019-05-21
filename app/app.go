@@ -25,7 +25,7 @@ type Route struct {
 }
 
 func (a *App) InitializeAndRun(config *config.Config, port string) {
-	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True",
+	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s",
 		config.DB.Username,
 		config.DB.Password,
 		config.DB.Host,
@@ -57,6 +57,11 @@ func getRouter(a *App) []Route {
 			method:  "GET",
 		},
 		{
+			route:   "/wallet",
+			handler: a.CreateWallet(),
+			method:  "POST",
+		},
+		{
 			route:   "/wallet/{wallet_id}/transactions",
 			handler: a.GetWalletTransactions(),
 			method:  "GET",
@@ -68,7 +73,7 @@ func getRouter(a *App) []Route {
 		},
 		{
 			route:   "/transaction/{tran_id}",
-			handler: a.CreateTransaction(),
+			handler: a.RevertTransaction(),
 			method:  "DELETE",
 		},
 	}
@@ -83,6 +88,11 @@ func (a *App) Run(host string) {
 func (a *App) GetWallet() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handler.GetWallet(a.DB, w, r)
+	}
+}
+func (a *App) CreateWallet() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler.CreateWallet(a.DB, w, r)
 	}
 }
 

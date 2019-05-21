@@ -51,7 +51,7 @@ func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	if err := db.Error; err != nil {
 		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
 	}
-	transaction = revertTransactionType(transaction)
+	transaction = createRevertTransaction(transaction)
 	err = processTransaction(wallet, transaction, db)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
@@ -85,6 +85,10 @@ func processTransaction(wallet model.Wallet, transaction model.Transaction, db *
 		tx.Rollback()
 		return err
 	}
+	if err := tx.Save(&wallet).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 	return tx.Commit().Error
 }
 
@@ -111,11 +115,15 @@ func getWalletFor(db *gorm.DB, walletId uint) model.Wallet {
 	return wallet
 }
 
-func revertTransactionType(transaction model.Transaction) model.Transaction {
+func createRevertTransaction(transaction model.Transaction) model.Transaction {
+	updatedTran := model.Transaction{}
 	if transaction.Type == constant.CREDIT {
-		transaction.Type = constant.DEBIT
+		updatedTran.Type = constant.DEBIT
 	} else {
-		transaction.Type = constant.CREDIT
+		updatedTran.Type = constant.CREDIT
 	}
-	return transaction
+	updatedTran.Amount = transaction.Amount
+	updatedTran.Description = fmt.Sprint("Revert of :", transaction.ID)
+	updatedTran.WalletId = transaction.WalletId
+	return updatedTran
 }
