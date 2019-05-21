@@ -16,7 +16,7 @@ type Transaction struct {
 	Type           string  `gorm:"type:ENUM('CREDIT','DEBIT');" json:"type"`
 	ClosingBalance float32
 	Description    string
-	WalletId       uint `json:"wallet_id"; gorm:"WalletId"`
+	WalletId       uint `json:"wallet_id"`
 }
 
 func DBMigrate(db *gorm.DB) *gorm.DB {
