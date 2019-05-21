@@ -1,0 +1,13 @@
+import:
+- package: github.com/gorilla/mux
+  version: v1.7.1
+- package: github.com/jinzhu/gorm
+  version: v1.9.8
+  subpackages:
+  - dialects/mysql
+- package: github.com/codegangsta/negroni
+  version: v1.0.0
+- package: github.com/stretchr/testify
+  version: v1.3.0
+- package: github.com/DATA-DOG/go-sqlmock
+  version: v1.2.0

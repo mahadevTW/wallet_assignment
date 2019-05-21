@@ -1,0 +1,32 @@
+hash: 39e5f61185f4b7c6ce501160c03d4b91e275a265a46772db5d613469dcb89384
+updated: 2019-05-21T07:44:46.156484+05:30
+imports:
+- name: github.com/codegangsta/negroni
+  version: c6a59be0ce122566695fbd5e48a77f8f10c8a63a
+- name: github.com/DATA-DOG/go-sqlmock
+  version: b983233bc0bbea4dc6e8ec8c8c923d935765ffec
+- name: github.com/davecgh/go-spew
+  version: 2df174808ee097f90d259e432cc04442cf60be21
+  subpackages:
+  - spew
+- name: github.com/go-sql-driver/mysql
+  version: 0b58b37b664c21f3010e836f1b931e1d0b0b0685
+- name: github.com/gorilla/mux
+  version: c5c6c98bc25355028a63748a498942a6398ccd22
+- name: github.com/jinzhu/gorm
+  version: b7156195f7f3415f97c20abbd6aff894b847fee8
+  subpackages:
+  - dialects/mysql
+- name: github.com/jinzhu/inflection
+  version: 04140366298a54a039076d798123ffa108fff46c
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: ffdc059bfe9ce6a4e144ba849dbedead332c6053
+  subpackages:
+  - assert
+- name: github.com/urfave/negroni
+  version: 0ce192d0bd24e9ec58b05bc72b3eac5bcc4f6517
+testImports: []
