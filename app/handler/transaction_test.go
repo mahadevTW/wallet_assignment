@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strings"
 	"testing"
 	"wallet/testutils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateTransactionFailsWith400ForWrongData(t *testing.T) {
@@ -26,7 +27,7 @@ func TestCreateTransactionFailsForInvalidWalletId(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"CREDIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -37,7 +38,7 @@ func TestCreateTransactionFailsForInvalidTransactionType(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"CREDIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -48,7 +49,7 @@ func TestCreateTransactionFailsWith400ForInsufficientFund(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"DEBIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -59,7 +60,7 @@ func TestCreateTransactionSuccessForCredit(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"DEBIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -70,7 +71,7 @@ func TestCreateTransactionSuccessForDebit(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"DEBIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -81,7 +82,7 @@ func TestRevertTransactionFailsWith400ForInvalidTransactionID(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"DEBIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -92,7 +93,7 @@ func TestRevertTransactionFailsSuccessForCreditTransaction(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"DEBIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }
 
@@ -103,6 +104,6 @@ func TestRevertTransactionFailsSuccessForDebitTransaction(t *testing.T) {
 	url := testService.Server.URL + "/transaction"
 	body := strings.NewReader(`{"wallet_id":123, "amount":500, "type":"DEBIT"}`)
 	resp, err := http.Post(url, "application/json", body)
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.NoError(t, err)
 }

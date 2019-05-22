@@ -1,14 +1,15 @@
 package handler
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 	"net/http"
 	"strconv"
 	"wallet/app/model"
+
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
-func CreateWallet(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+func CreateWallet(db *gorm.DB, w http.ResponseWriter) {
 	wallet := model.Wallet{}
 	db.Create(&wallet)
 	respondSuccess(w, wallet)

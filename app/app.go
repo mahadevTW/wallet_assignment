@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"wallet/app/handler"
 
+	"wallet/app/model"
+	"wallet/config"
+
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/urfave/negroni"
-	"wallet/app/model"
-	"wallet/config"
 )
 
 type App struct {
@@ -92,7 +93,7 @@ func (a *App) GetWallet() func(w http.ResponseWriter, r *http.Request) {
 }
 func (a *App) CreateWallet() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		handler.CreateWallet(a.DB, w, r)
+		handler.CreateWallet(a.DB, w)
 	}
 }
 

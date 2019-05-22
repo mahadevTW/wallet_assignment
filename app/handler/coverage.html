@@ -1,0 +1,503 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">wallet/app/handler/common.go (38.5%)</option>
+				
+				<option value="file1">wallet/app/handler/common_test_skip.go (0.0%)</option>
+				
+				<option value="file2">wallet/app/handler/transaction.go (38.8%)</option>
+				
+				<option value="file3">wallet/app/handler/wallet.go (0.0%)</option>
+				
+				<option value="file4">wallet/app/handler/wallet_test_skip.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handler
+
+import (
+        "encoding/json"
+        "net/http"
+)
+
+func respondSuccess(w http.ResponseWriter, payload interface{}) <span class="cov0" title="0">{
+        response, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+        <span class="cov0" title="0">w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte(response))</span>
+}
+
+func respondError(w http.ResponseWriter, code int, message string) <span class="cov8" title="1">{
+        payload := map[string]string{"error": message}
+        w.Header().Set("Content-Type", "application/json")
+        response, _ := json.Marshal(payload)
+        w.WriteHeader(code)
+        w.Write([]byte(response))
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handler
+
+import (
+        "encoding/json"
+        "github.com/stretchr/testify/assert"
+        "io/ioutil"
+        "net/http"
+        "net/http/httptest"
+        "testing"
+)
+
+type args struct {
+        writer  *httptest.ResponseRecorder
+        payload interface{}
+}
+type TestCase struct {
+        name string
+        args args
+}
+type StudentPayload struct {
+        Name   string
+        RollNo int32
+}
+
+func (ts *TestCase) assertMockVars(t *testing.T) <span class="cov0" title="0">{
+        resp := ts.args.writer.Result()
+        body, _ := ioutil.ReadAll(resp.Body)
+        payload := StudentPayload{}
+        json.Unmarshal(body, &amp;payload)
+        assert.Equal(t, resp.StatusCode, http.StatusOK)
+        assert.Equal(t, resp.Header.Get("Content-Type"), "application/json")
+        assert.Equal(t, payload, StudentPayload{"mahadev", 23})
+}</span>
+func Test_respondSuccess(t *testing.T) <span class="cov0" title="0">{
+        tests := []*TestCase{
+                {
+                        name: "Write Json response to Response Writer",
+                        args: args{
+                                writer:  httptest.NewRecorder(),
+                                payload: StudentPayload{"mahadev", 23},
+                        },
+                },
+        }
+        for _, tt := range tests </span><span class="cov0" title="0">{
+                t.Run(tt.name, func(t *testing.T) </span><span class="cov0" title="0">{
+                        respondSuccess(tt.args.writer, tt.args.payload)
+                }</span>)
+                <span class="cov0" title="0">tt.assertMockVars(t)</span>
+        }
+}
+
+func Test_responseError(t *testing.T) <span class="cov0" title="0">{
+        writer := httptest.NewRecorder()
+        message := "something went wrong"
+        code := http.StatusInternalServerError
+        errorResponse := make(map[string]string)
+
+        respondError(writer, code, message)
+
+        resp := writer.Result()
+        body, _ := ioutil.ReadAll(resp.Body)
+        json.Unmarshal(body, &amp;errorResponse)
+
+        assert.Equal(t, errorResponse["error"], message)
+        assert.Equal(t, resp.Header.Get("Content-Type"), "application/json")
+        assert.Equal(t, 500, resp.StatusCode)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package handler
+
+import (
+        "encoding/json"
+        "fmt"
+        "github.com/gorilla/mux"
+        "github.com/jinzhu/gorm"
+        "net/http"
+        "strconv"
+        "wallet/app/constant"
+        "wallet/app/model"
+)
+
+func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        transaction := model.Transaction{}
+        decoder := json.NewDecoder(r.Body)
+
+        if err := decoder.Decode(&amp;transaction); err != nil </span><span class="cov8" title="1">{
+                respondError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">wallet := getWalletFor(db, transaction.WalletId)
+        if err := db.Error; err != nil </span><span class="cov0" title="0">{
+                respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
+        }</span>
+        <span class="cov8" title="1">if !isValidTransactionType(transaction) </span><span class="cov0" title="0">{
+                respondError(w, http.StatusBadRequest, "invalid transaction type")
+                return
+        }</span>
+        <span class="cov8" title="1">tran, err := processTransaction(wallet, transaction, db)
+        if err != nil </span><span class="cov8" title="1">{
+                respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">respondSuccess(w, *tran)</span>
+}
+
+func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        vars := mux.Vars(r)
+        tranId, err := strconv.ParseInt(vars["tran_id"], 10, 64)
+        transaction := model.Transaction{}
+        transaction.ID = uint(tranId)
+        db.Find(&amp;transaction)
+
+        if err := db.Error; err != nil </span><span class="cov0" title="0">{
+                respondError(w, http.StatusInternalServerError, "failed while transaction information")
+        }</span>
+        <span class="cov0" title="0">wallet := getWalletFor(db, transaction.WalletId)
+
+        if err := db.Error; err != nil </span><span class="cov0" title="0">{
+                respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
+        }</span>
+        <span class="cov0" title="0">transaction = createRevertTransaction(transaction)
+        tran, err := processTransaction(wallet, transaction, db)
+        if err != nil </span><span class="cov0" title="0">{
+                respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">respondSuccess(w, *tran)</span>
+}
+func rollbackOnError(tx *gorm.DB) <span class="cov8" title="1">{
+        if r := recover(); r != nil </span><span class="cov0" title="0">{
+                tx.Rollback()
+        }</span>
+}
+func processTransaction(wallet model.Wallet, transaction model.Transaction, db *gorm.DB) (*model.Transaction, error) <span class="cov8" title="1">{
+        if !canProcessTransaction(transaction, wallet) </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("cannot process transaction")
+        }</span>
+        <span class="cov8" title="1">db.First(&amp;wallet, transaction.WalletId)
+        tx := db.Begin()
+        defer rollbackOnError(tx)
+        if err := tx.Error; err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">wallet.Balance = getUpdatedWalletBalance(wallet, transaction)
+        if err := tx.Save(&amp;wallet).Error; err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">transaction.ClosingBalance = wallet.Balance
+        if err := tx.Save(&amp;transaction).Error; err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">if err := tx.Save(&amp;wallet).Error; err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return &amp;transaction, tx.Commit().Error</span>
+}
+
+func getUpdatedWalletBalance(wallet model.Wallet, transaction model.Transaction) float32 <span class="cov0" title="0">{
+        if transaction.Type == constant.CREDIT </span><span class="cov0" title="0">{
+                return wallet.Balance + transaction.Amount
+        }</span>
+        <span class="cov0" title="0">return wallet.Balance - transaction.Amount</span>
+}
+
+func canProcessTransaction(transaction model.Transaction, wallet model.Wallet) bool <span class="cov8" title="1">{
+        return constant.CREDIT == transaction.Type ||
+                wallet.Balance-transaction.Amount &gt;= 0
+}</span>
+
+func isValidTransactionType(transaction model.Transaction) bool <span class="cov8" title="1">{
+        return constant.CREDIT == transaction.Type || constant.DEBIT == transaction.Type
+}</span>
+
+func getWalletFor(db *gorm.DB, walletId uint) model.Wallet <span class="cov8" title="1">{
+        wallet := model.Wallet{}
+        wallet.ID = walletId
+        db.First(&amp;wallet)
+        return wallet
+}</span>
+
+func createRevertTransaction(transaction model.Transaction) model.Transaction <span class="cov0" title="0">{
+        updatedTran := model.Transaction{}
+        if transaction.Type == constant.CREDIT </span><span class="cov0" title="0">{
+                updatedTran.Type = constant.DEBIT
+        }</span> else<span class="cov0" title="0"> {
+                updatedTran.Type = constant.CREDIT
+        }</span>
+        <span class="cov0" title="0">updatedTran.Amount = transaction.Amount
+        updatedTran.Description = fmt.Sprint("Revert of :", transaction.ID)
+        updatedTran.WalletId = transaction.WalletId
+        return updatedTran</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package handler
+
+import (
+        "net/http"
+        "strconv"
+        "wallet/app/model"
+
+        "github.com/gorilla/mux"
+        "github.com/jinzhu/gorm"
+)
+
+func CreateWallet(db *gorm.DB, w http.ResponseWriter) <span class="cov0" title="0">{
+        wallet := model.Wallet{}
+        db.Create(&amp;wallet)
+        respondSuccess(w, wallet)
+}</span>
+
+func GetWallet(db *gorm.DB, w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        vars := mux.Vars(r)
+        walletId, err := strconv.ParseInt(vars["wallet_id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                respondError(w, http.StatusBadRequest, "invalid wallet id")
+                return
+        }</span>
+        <span class="cov0" title="0">wallet := model.Wallet{}
+        wallet.ID = uint(walletId)
+        db.First(&amp;wallet)
+        respondSuccess(w, wallet)</span>
+}
+
+func GetWalletTransactions(db *gorm.DB, w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        vars := mux.Vars(r)
+        walletId, err := strconv.ParseInt(vars["wallet_id"], 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                respondError(w, http.StatusBadRequest, "invalid wallet id")
+                return
+        }</span>
+        <span class="cov0" title="0">var transactions []model.Transaction
+        db.Where("wallet_id=?", walletId).Find(&amp;transactions)
+        respondSuccess(w, transactions)</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package handler
+
+import (
+        "encoding/json"
+        "io/ioutil"
+        "net/http"
+        "net/http/httptest"
+        "testing"
+        "wallet/app/model"
+        "wallet/testutils"
+
+        sqlmock "github.com/DATA-DOG/go-sqlmock"
+        "github.com/jinzhu/gorm"
+        "github.com/stretchr/testify/assert"
+)
+
+func TestGetWalletFailsForNonNumericWalletId(t *testing.T) <span class="cov0" title="0">{
+        mockService := testutils.NewMockDb(t)
+        testService := testutils.NewTestServer().RegisterHandler("/wallet/{wallet_id}", mockService.Database, GetWallet)
+        defer testService.Server.Close()
+        url := testService.Server.URL + "/wallet/abc"
+        resp, err := http.Get(url)
+        assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+        assert.NoError(t, err)
+}</span>
+
+func TestGetWalletFailsForInvalidWalletId(t *testing.T) {<span class="cov0" title="0">
+}</span>
+
+func TestGetWalletSuccess(t *testing.T) <span class="cov0" title="0">{
+        mockService := testutils.NewMockDb(t)
+        testService := testutils.NewTestServer().RegisterHandler("/wallet/{wallet_id}", mockService.Database, GetWallet)
+        defer testService.Server.Close()
+        url := testService.Server.URL + "/wallet/123"
+        columns := []string{"ID", "balance"}
+        mockService.Mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows(columns).AddRow(123, 400))
+
+        resp, err := http.Get(url)
+        wallet := model.Wallet{}
+        body, _ := ioutil.ReadAll(resp.Body)
+        json.Unmarshal(body, &amp;wallet)
+        assert.Equal(t, http.StatusOK, resp.StatusCode)
+        assert.EqualValues(t, 123, wallet.ID)
+        assert.EqualValues(t, 400, wallet.Balance)
+        assert.NoError(t, err)
+}</span>
+
+func TestGetWalletTransactionsFailsForInvalidTransaction(t *testing.T) <span class="cov0" title="0">{
+        mockService := testutils.NewMockDb(t)
+        testService := testutils.NewTestServer().RegisterHandler("/wallet/{wallet_id}/transactions", mockService.Database, GetWalletTransactions)
+        defer testService.Server.Close()
+        url := testService.Server.URL + "/wallet/abc/transactions"
+        resp, err := http.Get(url)
+        assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+        assert.NoError(t, err)
+}</span>
+
+func TestGetWalletTransactionsTransaction(t *testing.T) <span class="cov0" title="0">{
+        mockService := testutils.NewMockDb(t)
+        testService := testutils.NewTestServer().RegisterHandler("/wallet/{wallet_id}/transactions", mockService.Database, GetWalletTransactions)
+        defer testService.Server.Close()
+        url := testService.Server.URL + "/wallet/1/transactions"
+        columns := []string{"ID", "amount", "type", "closingbalance", "description"}
+        mockService.Mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows(columns).AddRow(1, 200.0, "CREDIT", 200.0, "credit test"))
+        resp, _ := http.Get(url)
+        assert.Equal(t, http.StatusOK, resp.StatusCode)
+        transactions := []model.Transaction{}
+        defer resp.Body.Close()
+        body, _ := ioutil.ReadAll(resp.Body)
+        json.Unmarshal(body, &amp;transactions)
+        assert.EqualValues(t, "CREDIT", transactions[0].Type)
+        assert.EqualValues(t, 200, transactions[0].Amount)
+        assert.EqualValues(t, "credit test", transactions[0].Description)
+}</span>
+
+func TestGetWalletTransactionsFailsDBQueryFailsForGetTransactions(t *testing.T) {<span class="cov0" title="0">
+
+}</span>
+
+func TestGetWalletTransactionsSuccess(t *testing.T) {<span class="cov0" title="0">
+
+}</span>
+
+func TestCreateWallet(t *testing.T) <span class="cov0" title="0">{
+        mockparams := testutils.NewMockDb(t)
+        writer := httptest.NewRecorder()
+        type args struct {
+                db *gorm.DB
+                w  httptest.ResponseRecorder
+        }
+        tests := []struct {
+                name string
+                args args
+        }{
+                {
+                        "create_wallet_success",
+                        args{
+                                mockparams.Database,
+                                *writer,
+                        },
+                },
+        }
+        for _, tt := range tests </span><span class="cov0" title="0">{
+                t.Run(tt.name, func(t *testing.T) </span><span class="cov0" title="0">{
+                        CreateWallet(tt.args.db, &amp;tt.args.w)
+                        if !isEqual(tt.args.w) </span><span class="cov0" title="0">{
+                                t.Errorf("Error while creating wallet")
+                        }</span>
+                })
+        }
+}
+
+func isEqual(res httptest.ResponseRecorder) bool <span class="cov0" title="0">{
+        wallet := model.Wallet{}
+        body, err := ioutil.ReadAll(res.Body)
+        err = json.Unmarshal(body, &amp;wallet)
+        if err != nil </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov0" title="0">if res.Result().StatusCode != 200 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov0" title="0">if wallet.Balance != 0 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov0" title="0">return true</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
