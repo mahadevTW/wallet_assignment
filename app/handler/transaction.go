@@ -28,12 +28,12 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "invalid transaction type")
 		return
 	}
-	err := processTransaction(wallet, transaction, db)
+	tran, err := processTransaction(wallet, transaction, db)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
 		return
 	}
-	respondSuccess(w, transaction)
+	respondSuccess(w, *tran)
 }
 
 func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
@@ -52,17 +52,17 @@ func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
 	}
 	transaction = createRevertTransaction(transaction)
-	err = processTransaction(wallet, transaction, db)
+	tran, err := processTransaction(wallet, transaction, db)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
 		return
 	}
-	respondSuccess(w, transaction)
+	respondSuccess(w, *tran)
 }
 
-func processTransaction(wallet model.Wallet, transaction model.Transaction, db *gorm.DB) error {
+func processTransaction(wallet model.Wallet, transaction model.Transaction, db *gorm.DB) (*model.Transaction, error) {
 	if !canProcessTransaction(transaction, wallet) {
-		return fmt.Errorf("cannot process transaction")
+		return nil, fmt.Errorf("cannot process transaction")
 	}
 	db.First(&wallet, transaction.WalletId)
 	tx := db.Begin()
@@ -73,23 +73,23 @@ func processTransaction(wallet model.Wallet, transaction model.Transaction, db *
 	}()
 
 	if err := tx.Error; err != nil {
-		return err
+		return nil, err
 	}
 	wallet.Balance = getUpdatedWalletBalance(wallet, transaction)
 	if err := tx.Save(&wallet).Error; err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 	transaction.ClosingBalance = wallet.Balance
 	if err := tx.Save(&transaction).Error; err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 	if err := tx.Save(&wallet).Error; err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
-	return tx.Commit().Error
+	return &transaction, tx.Commit().Error
 }
 
 func getUpdatedWalletBalance(wallet model.Wallet, transaction model.Transaction) float32 {

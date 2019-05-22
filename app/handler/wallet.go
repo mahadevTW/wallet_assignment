@@ -35,9 +35,6 @@ func GetWalletTransactions(db *gorm.DB, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var transactions []model.Transaction
-	wallet := model.Wallet{}
-	wallet.ID = uint(walletId)
-	db.First(&wallet)
 	db.Where("wallet_id=?", walletId).Find(&transactions)
 	respondSuccess(w, transactions)
 }

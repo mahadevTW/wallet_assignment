@@ -25,7 +25,7 @@ type Route struct {
 }
 
 func (a *App) InitializeAndRun(config *config.Config, port string) {
-	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s",
+	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True",
 		config.DB.Username,
 		config.DB.Password,
 		config.DB.Host,
