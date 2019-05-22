@@ -44,9 +44,9 @@ func NewTestServer() *TestServer {
 	return &TestServer{r, ts}
 }
 
-func (t *TestServer) RegisterHandler(path string, db *gorm.DB, function func(db *gorm.DB, w http.ResponseWriter, r *http.Request)) *TestServer {
+func (t *TestServer) RegisterHandler(path string, db *gorm.DB, handlerFunc func(db *gorm.DB, w http.ResponseWriter, r *http.Request)) *TestServer {
 	t.request.HandleFunc(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		function(db, w, r)
+		handlerFunc(db, w, r)
 	}))
 	return t
 }

@@ -19,7 +19,6 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
 	wallet := getWalletFor(db, transaction.WalletId)
 	if err := db.Error; err != nil {
 		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
@@ -59,34 +58,30 @@ func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	respondSuccess(w, *tran)
 }
-
+func rollbackOnError(tx *gorm.DB) {
+	if r := recover(); r != nil {
+		tx.Rollback()
+	}
+}
 func processTransaction(wallet model.Wallet, transaction model.Transaction, db *gorm.DB) (*model.Transaction, error) {
 	if !canProcessTransaction(transaction, wallet) {
 		return nil, fmt.Errorf("cannot process transaction")
 	}
 	db.First(&wallet, transaction.WalletId)
 	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
+	defer rollbackOnError(tx)
 	if err := tx.Error; err != nil {
 		return nil, err
 	}
 	wallet.Balance = getUpdatedWalletBalance(wallet, transaction)
 	if err := tx.Save(&wallet).Error; err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 	transaction.ClosingBalance = wallet.Balance
 	if err := tx.Save(&transaction).Error; err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 	if err := tx.Save(&wallet).Error; err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 	return &transaction, tx.Commit().Error
