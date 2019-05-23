@@ -1,5 +1,10 @@
 package config
 
+import (
+	"os"
+	"strconv"
+)
+
 type Config struct {
 	DB *DBConfig
 }
@@ -15,14 +20,15 @@ type DBConfig struct {
 }
 
 func GetConfig() *Config {
+	port, _ := strconv.ParseInt(os.Getenv("DB_PORT"), 0, 64)
 	return &Config{
 		DB: &DBConfig{
 			Dialect:  "mysql",
-			Host:     "127.0.0.1",
-			Port:     3306,
-			Username: "root",
-			Password: "root",
-			Name:     "wallet",
+			Host:     os.Getenv("DB_HOST"),
+			Port:     int(port),
+			Username: os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASS"),
+			Name:     os.Getenv("DB_NAME"),
 			Charset:  "utf8",
 		},
 	}

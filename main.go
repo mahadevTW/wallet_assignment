@@ -8,5 +8,5 @@ import (
 func main() {
 	config := config.GetConfig()
 	app := &app.App{}
-	app.InitializeAndRun(config, ":3000")
+	app.InitializeAndRun(config, ":2004")
 }
