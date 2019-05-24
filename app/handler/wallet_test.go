@@ -9,7 +9,7 @@ import (
 	"wallet/app/model"
 	"wallet/testutils"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +19,7 @@ func TestGetWalletFailsForNonNumericWalletId(t *testing.T) {
 	testService := testutils.NewTestServer().RegisterHandler("/wallet/{wallet_id}", mockService.Database, GetWallet)
 	defer testService.Server.Close()
 	url := testService.Server.URL + "/wallet/abc"
-	resp, err := http.Get(url)
+	resp, err := 	http.Get(url)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	assert.NoError(t, err)
 }

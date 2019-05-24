@@ -65,9 +65,8 @@ func rollbackOnError(tx *gorm.DB) {
 }
 func processTransaction(wallet model.Wallet, transaction model.Transaction, db *gorm.DB) (*model.Transaction, error) {
 	if !canProcessTransaction(transaction, wallet) {
-		return nil, fmt.Errorf("cannot process transaction")
+		return nil, fmt.Errorf("cannot process transaction, check your balance")
 	}
-	db.First(&wallet, transaction.WalletId)
 	tx := db.Begin()
 	defer rollbackOnError(tx)
 	if err := tx.Error; err != nil {
