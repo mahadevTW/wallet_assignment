@@ -36,7 +36,7 @@ func (a *App) InitializeAndRun(config *config.Config, port string) {
 
 	db, err := gorm.Open(config.DB.Dialect, dbURI)
 	if err != nil {
-		log.Fatal("Could not connect database")
+		log.Fatal(fmt.Sprintf("connection failed to dbwith err : %#v  ", err.Error()))
 	}
 	a.DB = model.DBMigrate(db)
 	router := mux.NewRouter()
@@ -53,27 +53,27 @@ func (a *App) InitializeAndRun(config *config.Config, port string) {
 func getRouter(a *App) []Route {
 	return []Route{
 		{
-			route:   "/wallet/{wallet_id}",
+			route:   "/walletapi/wallet/{wallet_id}",
 			handler: a.GetWallet(),
 			method:  "GET",
 		},
 		{
-			route:   "/wallet",
+			route:   "/walletapi/wallet",
 			handler: a.CreateWallet(),
 			method:  "POST",
 		},
 		{
-			route:   "/wallet/{wallet_id}/transactions",
+			route:   "/walletapi/wallet/{wallet_id}/transactions",
 			handler: a.GetWalletTransactions(),
 			method:  "GET",
 		},
 		{
-			route:   "/transaction",
+			route:   "/walletapi/transaction",
 			handler: a.CreateTransaction(),
 			method:  "POST",
 		},
 		{
-			route:   "/transaction/{tran_id}",
+			route:   "/walletapi/transaction/{tran_id}",
 			handler: a.RevertTransaction(),
 			method:  "DELETE",
 		},

@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -22,5 +24,6 @@ func respondError(w http.ResponseWriter, code int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	response, _ := json.Marshal(payload)
 	w.WriteHeader(code)
+	log.Print(fmt.Sprintf("Error processing request with %s", message))
 	w.Write([]byte(response))
 }

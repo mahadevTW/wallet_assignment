@@ -36,6 +36,6 @@ func GetWalletTransactions(db *gorm.DB, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var transactions []model.Transaction
-	db.Where("wallet_id=?", walletId).Find(&transactions)
+	db.Order("created_at desc").Where("wallet_id=?", walletId).Find(&transactions)
 	respondSuccess(w, transactions)
 }
