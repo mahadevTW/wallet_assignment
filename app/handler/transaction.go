@@ -3,15 +3,17 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 	"net/http"
 	"strconv"
 	"wallet/app/constant"
 	"wallet/app/model"
+
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
 func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	fmt.Println("GET----------")
 	transaction := model.Transaction{}
 	decoder := json.NewDecoder(r.Body)
 
@@ -20,6 +22,8 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	wallet := getWalletFor(db, transaction.WalletId)
+	fmt.Printf("----------------%#v", transaction)
+
 	if err := db.Error; err != nil {
 		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
 	}
@@ -32,10 +36,12 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
 		return
 	}
+	fmt.Printf("====> %#v", tran)
 	respondSuccess(w, *tran)
 }
 
 func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
+	fmt.Println("helooooooooooooooooooooo")
 	vars := mux.Vars(r)
 	tranId, err := strconv.ParseInt(vars["tran_id"], 10, 64)
 	transaction := model.Transaction{}
@@ -46,7 +52,6 @@ func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusInternalServerError, "failed while transaction information")
 	}
 	wallet := getWalletFor(db, transaction.WalletId)
-
 	if err := db.Error; err != nil {
 		respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
 	}
@@ -81,6 +86,7 @@ func processTransaction(wallet model.Wallet, transaction model.Transaction, db *
 	if err := tx.Save(&transaction).Error; err != nil {
 		return nil, err
 	}
+
 	if err := tx.Save(&wallet).Error; err != nil {
 		return nil, err
 	}

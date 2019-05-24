@@ -54,11 +54,11 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">wallet/app/handler/common.go (38.5%)</option>
+				<option value="file0">wallet/app/handler/common.go (76.9%)</option>
 				
 				<option value="file1">wallet/app/handler/common_test_skip.go (0.0%)</option>
 				
-				<option value="file2">wallet/app/handler/transaction.go (38.8%)</option>
+				<option value="file2">wallet/app/handler/transaction.go (59.5%)</option>
 				
 				<option value="file3">wallet/app/handler/wallet.go (0.0%)</option>
 				
@@ -83,14 +83,14 @@ import (
         "net/http"
 )
 
-func respondSuccess(w http.ResponseWriter, payload interface{}) <span class="cov0" title="0">{
+func respondSuccess(w http.ResponseWriter, payload interface{}) <span class="cov8" title="1">{
         response, err := json.Marshal(payload)
         if err != nil </span><span class="cov0" title="0">{
                 w.WriteHeader(http.StatusInternalServerError)
                 w.Write([]byte(err.Error()))
                 return
         }</span>
-        <span class="cov0" title="0">w.Header().Set("Content-Type", "application/json")
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusOK)
         w.Write([]byte(response))</span>
 }
@@ -178,12 +178,13 @@ func Test_responseError(t *testing.T) <span class="cov0" title="0">{
 import (
         "encoding/json"
         "fmt"
-        "github.com/gorilla/mux"
-        "github.com/jinzhu/gorm"
         "net/http"
         "strconv"
         "wallet/app/constant"
         "wallet/app/model"
+
+        "github.com/gorilla/mux"
+        "github.com/jinzhu/gorm"
 )
 
 func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
@@ -195,10 +196,12 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <spa
                 return
         }</span>
         <span class="cov8" title="1">wallet := getWalletFor(db, transaction.WalletId)
+        fmt.Printf("----------------%#v", transaction)
+
         if err := db.Error; err != nil </span><span class="cov0" title="0">{
                 respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
         }</span>
-        <span class="cov8" title="1">if !isValidTransactionType(transaction) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if !isValidTransactionType(transaction) </span><span class="cov8" title="1">{
                 respondError(w, http.StatusBadRequest, "invalid transaction type")
                 return
         }</span>
@@ -207,7 +210,8 @@ func CreateTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <spa
                 respondError(w, http.StatusInternalServerError, "failed to process transaction, "+err.Error())
                 return
         }</span>
-        <span class="cov0" title="0">respondSuccess(w, *tran)</span>
+        <span class="cov8" title="1">fmt.Printf("====&gt; %#v", tran)
+        respondSuccess(w, *tran)</span>
 }
 
 func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
@@ -221,7 +225,7 @@ func RevertTransaction(db *gorm.DB, w http.ResponseWriter, r *http.Request) <spa
                 respondError(w, http.StatusInternalServerError, "failed while transaction information")
         }</span>
         <span class="cov0" title="0">wallet := getWalletFor(db, transaction.WalletId)
-
+        fmt.Printf("----------------%#v", wallet)
         if err := db.Error; err != nil </span><span class="cov0" title="0">{
                 respondError(w, http.StatusInternalServerError, "failed while fetching wallet information")
         }</span>
@@ -242,31 +246,36 @@ func processTransaction(wallet model.Wallet, transaction model.Transaction, db *
         if !canProcessTransaction(transaction, wallet) </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("cannot process transaction")
         }</span>
-        <span class="cov8" title="1">db.First(&amp;wallet, transaction.WalletId)
+        <span class="cov8" title="1">fmt.Printf("\n88888=&gt;%#v\n", transaction.WalletId)
+        fmt.Println("wallet id = ", transaction.WalletId)
+        fmt.Println("criteria = ", &amp;wallet, transaction.WalletId)
+        db.First(&amp;wallet, transaction.WalletId)
         tx := db.Begin()
         defer rollbackOnError(tx)
         if err := tx.Error; err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">wallet.Balance = getUpdatedWalletBalance(wallet, transaction)
+        <span class="cov8" title="1">wallet.Balance = getUpdatedWalletBalance(wallet, transaction)
         if err := tx.Save(&amp;wallet).Error; err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">transaction.ClosingBalance = wallet.Balance
+        <span class="cov8" title="1">transaction.ClosingBalance = wallet.Balance
         if err := tx.Save(&amp;transaction).Error; err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">if err := tx.Save(&amp;wallet).Error; err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">fmt.Printf("wallet transatiob------&gt; %#v", wallet)
+
+        if err := tx.Save(&amp;wallet).Error; err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return &amp;transaction, tx.Commit().Error</span>
+        <span class="cov8" title="1">return &amp;transaction, tx.Commit().Error</span>
 }
 
-func getUpdatedWalletBalance(wallet model.Wallet, transaction model.Transaction) float32 <span class="cov0" title="0">{
-        if transaction.Type == constant.CREDIT </span><span class="cov0" title="0">{
+func getUpdatedWalletBalance(wallet model.Wallet, transaction model.Transaction) float32 <span class="cov8" title="1">{
+        if transaction.Type == constant.CREDIT </span><span class="cov8" title="1">{
                 return wallet.Balance + transaction.Amount
         }</span>
-        <span class="cov0" title="0">return wallet.Balance - transaction.Amount</span>
+        <span class="cov8" title="1">return wallet.Balance - transaction.Amount</span>
 }
 
 func canProcessTransaction(transaction model.Transaction, wallet model.Wallet) bool <span class="cov8" title="1">{
@@ -279,8 +288,8 @@ func isValidTransactionType(transaction model.Transaction) bool <span class="cov
 }</span>
 
 func getWalletFor(db *gorm.DB, walletId uint) model.Wallet <span class="cov8" title="1">{
-        wallet := model.Wallet{}
-        wallet.ID = walletId
+                wallet := model.Wallet{}
+                wallet.ID = walletId
         db.First(&amp;wallet)
         return wallet
 }</span>
@@ -415,14 +424,6 @@ func TestGetWalletTransactionsTransaction(t *testing.T) <span class="cov0" title
         assert.EqualValues(t, "CREDIT", transactions[0].Type)
         assert.EqualValues(t, 200, transactions[0].Amount)
         assert.EqualValues(t, "credit test", transactions[0].Description)
-}</span>
-
-func TestGetWalletTransactionsFailsDBQueryFailsForGetTransactions(t *testing.T) {<span class="cov0" title="0">
-
-}</span>
-
-func TestGetWalletTransactionsSuccess(t *testing.T) {<span class="cov0" title="0">
-
 }</span>
 
 func TestCreateWallet(t *testing.T) <span class="cov0" title="0">{

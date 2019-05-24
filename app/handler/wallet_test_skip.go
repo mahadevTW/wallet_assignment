@@ -73,14 +73,6 @@ func TestGetWalletTransactionsTransaction(t *testing.T) {
 	assert.EqualValues(t, "credit test", transactions[0].Description)
 }
 
-func TestGetWalletTransactionsFailsDBQueryFailsForGetTransactions(t *testing.T) {
-
-}
-
-func TestGetWalletTransactionsSuccess(t *testing.T) {
-
-}
-
 func TestCreateWallet(t *testing.T) {
 	mockparams := testutils.NewMockDb(t)
 	writer := httptest.NewRecorder()
